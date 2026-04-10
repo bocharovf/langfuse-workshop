@@ -1,0 +1,100 @@
+x-llm-vars: &llm-vars
+  LLM_URL: https://api.gpt.mws.ru
+  LLM_TOKEN: ${LLM_TOKEN}
+
+x-embedding-model: &embedding-model
+  EMBEDDING_MODEL: bge-m3
+
+x-langfuse-vars: &langfuse-vars
+  LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
+  LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
+  LANGFUSE_HOST: ${LANGFUSE_HOST}
+
+services:
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  qdrant:
+    image: qdrant/qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: [ "CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1" ]
+      interval: 5s
+      timeout: 3s
+      retries: 2
+
+  rag-loader:
+    build: ./rag-loader
+    volumes:
+      - ./rag-loader/app:/app
+      - ./rag-loader/data:/data
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    environment:
+      <<: [*llm-vars, *embedding-model]
+
+  mcp-server:
+    build: ./mcp-server
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./mcp-server/app:/app
+    depends_on:
+      qdrant:
+        condition: service_healthy
+      rag-loader:
+        condition: service_completed_successfully
+    environment:
+      <<: [*llm-vars, *embedding-model]
+      STEP_4: ${STEP_4}
+      STEP_3: ${STEP_3}
+
+  agent-setup:
+    build: ./cookbook-agent
+    command: ["python", "setup.py"]
+    volumes:
+      - ./cookbook-agent/app:/app
+    depends_on:
+      - mcp-server
+    environment:
+      <<: *langfuse-vars
+
+  cookbook-agent:
+    build: ./cookbook-agent
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./cookbook-agent/app:/app
+    depends_on:
+      redis:
+        condition: service_healthy
+      mcp-server:
+        condition: service_started
+      agent-setup:
+        condition: service_completed_successfully
+    environment:
+      <<: [*llm-vars, *langfuse-vars]
+      MCP_URL: http://mcp-server:8000/mcp
+      MODEL: llama-3.3-70b-instruct
+      BASIC_MODEL: llama-3.1-8b-instruct
+      REDIS_URL: redis://redis:6379/0
+      MEMORY_TTL_SECONDS: 21600
+      STEP_5_1: ${STEP_5_1}
+      STEP_5_2: ${STEP_5_2}
+      STEP_1: ${STEP_1}
+
+volumes:
+  qdrant_data:
