@@ -24,7 +24,7 @@ def touch_session(session_id: str) -> None:
     r.expire(_constraints_key(session_id), MEMORY_TTL_SECONDS)
 
 
-def append_history(session_id: str, role: str, content: str, limit: int = 10) -> None:
+def append_history(session_id: str, role: str, content: str, limit: int = 3) -> None:
 
     key = _history_key(session_id)
     item = json.dumps({"role": role, "content": content}, ensure_ascii=False)
