@@ -170,7 +170,7 @@ def run_agent(question, session_id: str):
         )
 
         if STEP_5_1:
-            append_history(session_id, "user", question, limit=3)
+            append_history(session_id, "user", question, limit=10)
 
         for step in range(MAX_STEPS):
             with langfuse.start_as_current_observation(
@@ -182,7 +182,7 @@ def run_agent(question, session_id: str):
                 if response["finish_reason"] == "stop":
                     answer = response["message"]["content"]
                     if STEP_5_1:
-                        append_history(session_id, "assistant", answer, limit=3)
+                        append_history(session_id, "assistant", answer, limit=10)
 
                         # отдельный этап: извлечение ограничений (если включено)
                         if STEP_5_2:
