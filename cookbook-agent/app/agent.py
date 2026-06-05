@@ -369,10 +369,10 @@ def choose_model(user_text, tools):
     try:
         output_data = json.loads(output)
         tools_request = output_data.get("tool_calls")
-        if tools_request:
-            result = {"model": REGULAR_MODEL, "tool_calls": True}
+        if tools_request == True:
+            result = {"model": REGULAR_MODEL, "tool_calls": tools_request == "true"}
         else:
-            result = {"model": BASIC_MODEL, "tool_calls": False}
+            result = {"model": BASIC_MODEL, "tool_calls": tools_request == "true"}
     except Exception:
         result = {"model": REGULAR_MODEL, "tool_calls": True}
 
