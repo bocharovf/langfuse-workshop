@@ -42,7 +42,7 @@ def list_tools():
 
 
 def call_tool(name, arguments):
-    with langfuse.start_as_current_observation(as_type="tool", name="call-tool") as tool:
+    with langfuse.start_as_current_observation(as_type="tool", name="call-tool", input=arguments) as tool:
         tool.update(input={"name": name, "arguments": arguments})
         payload = _build_base_request("tools/call")
         payload["params"] = {
