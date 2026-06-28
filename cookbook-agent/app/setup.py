@@ -2,10 +2,9 @@ from observability import langfuse
 
 
 MODEL_DEFINITIONS = [
-    ("llama-3.3-70b-instruct", 0.1),
-    ("llama-3.1-8b-instruct", 0.001),
+    ("qwen3-235b-instruct", 0.1),
+    ("qwen3-32b", 0.001),
 ]
-
 
 def create_model_definitions():
     full_model_list = []
