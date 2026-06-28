@@ -102,7 +102,7 @@ services:
 # Langfuse services
 
   langfuse-worker:
-    image: docker.io/langfuse/langfuse-worker:3.155.1
+    image: docker.io/langfuse/langfuse-worker:3.200.0
     restart: always
     depends_on: &langfuse-depends-on
       postgres:
@@ -165,7 +165,7 @@ services:
       LANGFUSE_DEFAULT_ORG_ROLE: "ADMIN"
 
   langfuse-web:
-    image: docker.io/langfuse/langfuse:3.155.1
+    image: docker.io/langfuse/langfuse:3.200.0
     restart: always
     depends_on: *langfuse-depends-on
     ports:
