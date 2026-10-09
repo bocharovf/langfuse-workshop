@@ -1,9 +1,11 @@
+import os
+
 from observability import langfuse
 
 
 MODEL_DEFINITIONS = [
-    ("qwen3-235b-instruct", 0.1),
-    ("qwen3-32b", 0.001),
+    (os.getenv("MODEL"), 0.1),
+    (os.getenv("BASIC_MODEL"), 0.001),
 ]
 
 def create_model_definitions():

@@ -5,6 +5,10 @@ x-llm-vars: &llm-vars
 x-embedding-model: &embedding-model
   EMBEDDING_MODEL: bge-m3
 
+x-agent-models: &agent-models
+  MODEL: glm-5-3
+  BASIC_MODEL: gpt-oss-120b
+
 x-langfuse-vars: &langfuse-vars
   LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
   LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
@@ -73,7 +77,7 @@ services:
       langfuse-web:
         condition: service_healthy
     environment:
-      <<: *langfuse-vars
+      <<: [*langfuse-vars, *agent-models]
 
   cookbook-agent:
     build: ./cookbook-agent
@@ -89,10 +93,8 @@ services:
       agent-setup:
         condition: service_completed_successfully
     environment:
-      <<: [*llm-vars, *langfuse-vars]
+      <<: [*llm-vars, *langfuse-vars, *agent-models]
       MCP_URL: http://mcp-server:8000/mcp
-      MODEL: qwen3-235b-instruct
-      BASIC_MODEL: qwen3-32b
       REDIS_URL: redis://redis:6379/0
       MEMORY_TTL_SECONDS: 21600
       STEP_5_1: ${STEP_5_1}
