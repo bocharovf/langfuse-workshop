@@ -104,7 +104,7 @@ services:
 # Langfuse services
 
   langfuse-worker:
-    image: docker.io/langfuse/langfuse-worker:3.200.0
+    image: docker.io/langfuse/langfuse-worker:4.56.0
     restart: always
     depends_on: &langfuse-depends-on
       postgres:
@@ -167,7 +167,7 @@ services:
       LANGFUSE_DEFAULT_ORG_ROLE: "ADMIN"
 
   langfuse-web:
-    image: docker.io/langfuse/langfuse:3.200.0
+    image: docker.io/langfuse/langfuse:4.56.0
     restart: always
     depends_on: *langfuse-depends-on
     ports:
@@ -192,7 +192,7 @@ services:
       start_period: 30s
 
   clickhouse:
-    image: docker.io/clickhouse/clickhouse-server
+    image: docker.io/clickhouse/clickhouse-server:25.12
     restart: always
     user: "101:101"
     environment:
