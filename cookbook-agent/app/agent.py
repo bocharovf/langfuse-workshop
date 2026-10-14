@@ -5,11 +5,11 @@ import time
 import requests
 import base64
 
-from langfuse import observe
+from langfuse import observe, propagate_attributes
 from langfuse.api import NotFoundError
 
 from observability import langfuse
-from mcp_client import call_tool, list_tools
+from mcp_client import call_tool, list_tools, get_server_flags
 from memory import (
     append_history, get_history,
     get_constraints, set_constraints, merge_constraints, touch_session
@@ -156,7 +156,32 @@ def choose_prompt():
 
 # ---------- MAIN AGENT ----------
 
+WORKSHOP_FLAGS = ["STEP_1", "STEP_3", "STEP_4", "STEP_5_1", "STEP_5_2"]
+
+
+def workshop_flags():
+    # флаги, с которыми реально работают агент и MCP-сервер.
+    # STEP_3 и STEP_4 спрашиваем у MCP-сервера; None - если он не ответил
+    server_flags = get_server_flags() or {}
+    flags = {"STEP_1": STEP_1, "STEP_5_1": STEP_5_1, "STEP_5_2": STEP_5_2}
+    flags["STEP_3"] = server_flags.get("STEP_3")
+    flags["STEP_4"] = server_flags.get("STEP_4")
+    return {name: flags[name] for name in WORKSHOP_FLAGS}
+
+
+def workshop_session_id(flags=None):
+    # сессия Langfuse = включённые флаги воркшопа, например "STEP_5_1+STEP_5_2" или "NO_STEP"
+    flags = workshop_flags() if flags is None else flags
+    return "+".join(name for name, value in flags.items() if value) or "NO_STEP"
+
+
 def run_agent(question, session_id: str):
+    # session_id здесь - сессия браузера для памяти агента, а в Langfuse трейсы группируются по флагам
+    with propagate_attributes(session_id=workshop_session_id()):
+        return _run_agent(question, session_id)
+
+
+def _run_agent(question, session_id: str):
 
     with langfuse.start_as_current_observation(
         as_type="span",

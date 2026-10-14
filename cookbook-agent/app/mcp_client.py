@@ -44,6 +44,17 @@ def _create_llm_tool_definition(mcp_tool):
     }
 
 
+def get_server_flags():
+    # флаги, с которыми запущен MCP-сервер (STEP_3, STEP_4); None, если сервер не ответил
+    flags_url = MCP_URL.rsplit("/mcp", 1)[0] + "/workshop/flags"
+    try:
+        r = requests.get(flags_url, timeout=2)
+        r.raise_for_status()
+        return r.json()
+    except Exception:
+        return None
+
+
 def list_tools():
     with langfuse.start_as_current_observation(as_type="tool", name="list-tools") as tool:
         r = requests.post(

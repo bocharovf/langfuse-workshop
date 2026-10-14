@@ -3,6 +3,7 @@ import os
 from fastmcp import FastMCP
 from starlette.middleware import Middleware as ASGIMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 from starlette_context.middleware import ContextMiddleware
 
 from schemas.recipe_rag import RecipeRagRequest, RecipeRagResponse
@@ -14,9 +15,15 @@ from tool_gen import generate_cost_tools
 
 mcp = FastMCP()
 
+WORKSHOP_FLAGS_PATH = "/workshop/flags"
+
 
 class SimulateFailureHTTPMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
+        # служебный адрес с флагами не участвует в имитации сбоев
+        if request.url.path == WORKSHOP_FLAGS_PATH:
+            return await call_next(request)
+
         if is_faulty_mode_on():
             init_request_failure_chance()
 
@@ -62,6 +69,12 @@ if STEP_4:
     generate_cost_tools(mcp, recipe_cost.__doc__)
 else:
     mcp.tool(recipe_cost)
+
+
+@mcp.custom_route(WORKSHOP_FLAGS_PATH, methods=["GET"])
+async def workshop_flags(request):
+    # флаги, с которыми реально запущен MCP-сервер: агент по ним определяет сессию Langfuse
+    return JSONResponse({"STEP_3": is_faulty_mode_on(), "STEP_4": STEP_4})
 
 
 app = mcp.http_app(
