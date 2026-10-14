@@ -46,8 +46,8 @@ def _create_llm_tool_definition(mcp_tool):
 
 def get_server_flags():
     # флаги, с которыми запущен MCP-сервер (STEP_3, STEP_4); None, если сервер не ответил
-    flags_url = MCP_URL.rsplit("/mcp", 1)[0] + "/workshop/flags"
     try:
+        flags_url = MCP_URL.rsplit("/mcp", 1)[0] + "/workshop/flags"
         r = requests.get(flags_url, timeout=2)
         r.raise_for_status()
         return r.json()
