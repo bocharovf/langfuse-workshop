@@ -186,10 +186,12 @@ services:
       LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD:-}
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://langfuse-web:3000/api/public/health || exit 1"]
-      interval: 30s
+      # проверяем часто, чтобы зависимые сервисы стартовали сразу, как только Langfuse готов;
+      # первый запуск с миграциями занимает несколько минут - на это время ошибки проверки не считаются
+      interval: 5s
       timeout: 10s
-      retries: 3
-      start_period: 30s
+      retries: 6
+      start_period: 300s
 
   clickhouse:
     image: docker.io/clickhouse/clickhouse-server:25.12
@@ -213,8 +215,8 @@ services:
       start_period: 1s
 
   minio:
-    #image: cgr.dev/chainguard/minio
-    image: quay.io/minio/minio
+    # образы MinIO удалены с quay.io и Docker Hub - используем сборку Chainguard, как в compose самого Langfuse
+    image: cgr.dev/chainguard/minio
     restart: always
     entrypoint: sh
     # create the 'langfuse' bucket before starting the service
