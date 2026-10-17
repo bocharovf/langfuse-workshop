@@ -216,7 +216,7 @@ services:
 
   minio:
     # образы MinIO удалены с quay.io и Docker Hub - используем сборку Chainguard, как в compose самого Langfuse
-    image: cgr.dev/chainguard/minio
+    image: pgsty/silo:RELEASE.2026-09-16T00-00-00Z
     restart: always
     entrypoint: sh
     # create the 'langfuse' bucket before starting the service
