@@ -215,12 +215,12 @@ services:
       start_period: 1s
 
   minio:
-    # образы MinIO удалены с quay.io и Docker Hub - используем сборку Chainguard, как в compose самого Langfuse
-    image: cgr.dev/chainguard/minio
+    # официальные образы MinIO больше не публикуются, Chainguard отдает 403 - берем форк Silo от Pigsty (бинарник называется silo)
+    image: pgsty/silo:RELEASE.2026-09-16T00-00-00Z
     restart: always
     entrypoint: sh
     # create the 'langfuse' bucket before starting the service
-    command: -c 'mkdir -p /data/langfuse && minio server --address ":9000" --console-address ":9001" /data'
+    command: -c 'mkdir -p /data/langfuse && silo server --address ":9000" --console-address ":9001" /data'
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-miniosecret} # CHANGEME
